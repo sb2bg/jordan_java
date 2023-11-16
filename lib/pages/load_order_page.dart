@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:jhs_pop/util/constants.dart';
 import 'package:jhs_pop/util/order.dart';
 
 class LoadOrderPage extends StatefulWidget {
@@ -21,14 +23,76 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
     );
 
     if (result != null && result.files.single.path != null) {
-      await _loadDataFrame(File(result.files.single.path!));
+      final file = File(result.files.single.path!);
+      final bytes = await file.readAsBytes();
+      final excel = Excel.decodeBytes(bytes);
+
+      await _loadDataFrame(excel);
     }
   }
 
-  Future<void> _loadDataFrame(File file) async {
-    final input = file.openRead();
+  List<int> promptForColumn(List<dynamic> row) {
+    final columns = row.asMap().entries.map((e) => '${e.key}: ${e.value}');
 
-    
+    return [0, 1, 2, 3, 4];
+  }
+
+  _loadDataFrame(Excel excel) async {
+    int sheetIndex = 0;
+
+    if (excel.tables.length > 1) {
+      bool confirmed = false;
+
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Select Sheet'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: excel.tables.length,
+                itemBuilder: (context, index) {
+                  final sheet = excel.tables.values.elementAt(index);
+
+                  return ListTile(
+                    title: Text(sheet.sheetName),
+                    onTap: () {
+                      sheetIndex = index;
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    final sheet = excel.tables.values.elementAt(sheetIndex);
+
+    final [name, room, preferences, price, quantity] =
+        promptForColumn(sheet.rows.first);
+
+    for (final row in sheet.rows.skip(1)) {
+      final order = TeacherOrder(
+        name: row[name]!.toString(),
+        room: row[room]!.toString(),
+        preferences: row[preferences]!.toString(),
+        price: double.parse(row[price]!.toString()),
+        quantity: int.parse(row[quantity]!.toString()),
+      );
+
+      setState(() {
+        _orders.add(order);
+      });
+    }
   }
 
   @override
