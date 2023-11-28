@@ -1,40 +1,48 @@
 class TeacherOrder {
-  final String name;
-  final String room;
-  final String preferences;
-  final double price;
-  final int quantity;
+  final int? id;
+  final String? name;
+  final String? room;
+  final String? additional;
+  final String? frequency;
+  final String? creamer;
+  final String? sweetener;
 
   const TeacherOrder({
+    required this.id,
     required this.name,
-    required this.preferences,
     required this.room,
-    required this.price,
-    required this.quantity,
+    required this.additional,
+    required this.frequency,
+    required this.creamer,
+    required this.sweetener,
   });
 
   factory TeacherOrder.fromMap(Map<String, dynamic> map) {
     return TeacherOrder(
-      name: map['name'] as String,
-      preferences: map['preferences'] as String,
-      room: map['room'] as String,
-      price: map['price'] as double,
-      quantity: map['quantity'] as int,
+      id: map['id'],
+      name: map['name'],
+      room: map['room'],
+      additional: map['additional'],
+      frequency: map['frequency'],
+      creamer: map['creamer'],
+      sweetener: map['sweetener'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
-      'preferences': preferences,
       'room': room,
-      'price': price,
-      'quantity': quantity,
+      'additional': additional,
+      'frequency': frequency,
+      'creamer': creamer,
+      'sweetener': sweetener,
     };
   }
 
   @override
   String toString() {
-    return 'TeacherOrder(name: $name, preferences: $preferences, room: $room, price: $price, quantity: $quantity)';
+    return 'TeacherOrder(name: $name, room: $room, additional: $additional, frequency: $frequency, creamer: $creamer, sweetener: $sweetener)';
   }
 }

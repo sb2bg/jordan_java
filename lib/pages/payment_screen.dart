@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:jhs_pop/util/order.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key, required this.total});
+  const PaymentScreen({super.key, required this.order});
 
-  final double total;
+  final TeacherOrder order;
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -47,7 +48,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Total: \$${widget.total.toStringAsFixed(2)}',
+              widget.order.name ?? 'No name specified',
+              style: const TextStyle(
+                fontSize: 24.0,
+              ),
+            ),
+            const SizedBox(height: 6.0),
+            Text(
+              'Total: \$${12.34.toStringAsFixed(2)}',
               style: const TextStyle(
                 fontSize: 24.0,
               ),
@@ -62,7 +70,60 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             const SizedBox(height: 50.0),
-            ElevatedButton(
+            TextButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Order Details'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            title: const Text('Name'),
+                            subtitle:
+                                Text(widget.order.name ?? 'No name specified'),
+                          ),
+                          ListTile(
+                            title: const Text('Room'),
+                            subtitle:
+                                Text(widget.order.room ?? 'No room specified'),
+                          ),
+                          ListTile(
+                            title: const Text('Additional'),
+                            subtitle: Text(widget.order.additional ??
+                                'No additional specified'),
+                          ),
+                          ListTile(
+                            title: const Text('Frequency'),
+                            subtitle: Text(widget.order.frequency ??
+                                'No frequency specified'),
+                          ),
+                          ListTile(
+                            title: const Text('Creamer'),
+                            subtitle: Text(
+                                widget.order.creamer ?? 'No creamer specified'),
+                          ),
+                          ListTile(
+                            title: const Text('Sweetener'),
+                            subtitle: Text(widget.order.sweetener ??
+                                'No sweetener specified'),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('View Order Details')),
+            TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },

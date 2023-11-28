@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
@@ -31,10 +30,60 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
     }
   }
 
-  List<int> promptForColumn(List<dynamic> row) {
-    final columns = row.asMap().entries.map((e) => '${e.key}: ${e.value}');
+  static const fields = [
+    'name',
+    'room',
+    'additional items',
+    'frequency',
+    'creamer',
+    'sweetener',
+  ];
 
-    return [0, 1, 2, 3, 4];
+  Future<List<int>?> promptForColumn(List<Data> row) async {
+    final columns = row.asMap().entries.map((e) => '${e.value.value}');
+
+    List<int> mappedFields = [];
+
+    for (final field in fields) {
+      final index = await openDialog(columns, field);
+
+      if (index == -1) {
+        return null;
+      }
+
+      mappedFields.add(index);
+    }
+
+    return mappedFields;
+  }
+
+  Future<int> openDialog(Iterable<String> columns, String columnName) async {
+    return await showDialog<int>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Select $columnName column'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: columns.length,
+                  itemBuilder: (context, index) {
+                    final column = columns.elementAt(index);
+
+                    return ListTile(
+                      title: Text(column),
+                      onTap: () {
+                        Navigator.of(context).pop(index);
+                      },
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        ) ??
+        -1;
   }
 
   _loadDataFrame(Excel excel) async {
@@ -60,6 +109,7 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
                     title: Text(sheet.sheetName),
                     onTap: () {
                       sheetIndex = index;
+                      confirmed = true;
                       Navigator.of(context).pop();
                     },
                   );
@@ -77,22 +127,47 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
 
     final sheet = excel.tables.values.elementAt(sheetIndex);
 
-    final [name, room, preferences, price, quantity] =
-        promptForColumn(sheet.rows.first);
+    List<Data> header = [];
+
+    for (final cell in sheet.rows.first) {
+      if (cell != null) {
+        header.add(cell);
+      }
+    }
+
+    final columnMapping = await promptForColumn(header);
+
+    if (columnMapping == null) {
+      return;
+    }
+
+    final indexes = columnMapping;
 
     for (final row in sheet.rows.skip(1)) {
-      final order = TeacherOrder(
-        name: row[name]!.toString(),
-        room: row[room]!.toString(),
-        preferences: row[preferences]!.toString(),
-        price: double.parse(row[price]!.toString()),
-        quantity: int.parse(row[quantity]!.toString()),
-      );
+      final orderMap = fields.asMap().map((index, field) {
+        final value = row[indexes[index]];
+
+        return MapEntry(field, value?.value.toString());
+      });
+
+      final order = TeacherOrder.fromMap(orderMap);
 
       setState(() {
         _orders.add(order);
       });
     }
+  }
+
+  Future<bool> deleteAt(int index) async {
+    return await context.showConfirmationDialog(
+        title: 'Confirm',
+        message: 'Are you sure you want to delete this order?',
+        onConfirm: () {
+          setState(() {
+            _orders.removeAt(index);
+          });
+        },
+        confirmText: "Delete");
   }
 
   @override
@@ -107,18 +182,48 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              ElevatedButton(
-                onPressed: _loadFile,
-                child: const Text('Load Order File'),
+              const Text(
+                'Select an option to load teacher orders',
+                style: TextStyle(fontSize: 24),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _loadFile,
+                    child: const Text('Select File'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                      onPressed: () async {
+                        final order =
+                            await Navigator.pushNamed(context, '/manual')
+                                as TeacherOrder?;
+
+                        if (order != null) {
+                          setState(() {
+                            _orders.add(order);
+                          });
+                        }
+                      },
+                      child: const Text('Manual Entry')),
+                ],
               ),
               const SizedBox(height: 20),
               if (_orders.isNotEmpty) ...[
                 Card(
                   child: ListTile(
-                    title: const Text('Preview'),
-                    subtitle: Text(
-                        '${_orders.length} ${_orders.length == 1 ? 'order' : 'orders'}'),
-                  ),
+                      title: const Text('Submit'),
+                      subtitle: Text(
+                          '${_orders.length} ${_orders.length == 1 ? 'order' : 'orders'}'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.send),
+                        onPressed: () {
+                          Navigator.pop(context, _orders);
+                        },
+                      )),
                 ),
                 const SizedBox(height: 20),
                 Expanded(
@@ -127,11 +232,82 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
                     itemBuilder: (context, index) {
                       final order = _orders[index];
 
-                      return Card(
-                        child: ListTile(
-                          title: Text('${order.name} - ${order.room}'),
-                          subtitle: Text(order.preferences),
-                          trailing: Text('\$${order.price}'),
+                      return GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Order Details'),
+                                content: SizedBox(
+                                  width: double.maxFinite,
+                                  child: ListView(
+                                    shrinkWrap: true,
+                                    children: [
+                                      ListTile(
+                                        title: const Text('Name'),
+                                        subtitle: Text(
+                                            order.name ?? 'No name specified'),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Room'),
+                                        subtitle: Text(
+                                            order.room ?? 'No room specified'),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Additional Items'),
+                                        subtitle: Text(order.additional ??
+                                            'No additional items specified'),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Frequency'),
+                                        subtitle: Text(order.frequency ??
+                                            'No frequency specified'),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Creamer'),
+                                        subtitle: Text(order.creamer ??
+                                            'No creamer specified'),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Sweetener'),
+                                        subtitle: Text(order.sweetener ??
+                                            'No sweetener specified'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Dismissible(
+                          key: Key(order.toString()),
+                          confirmDismiss: (direction) async {
+                            return await deleteAt(index);
+                          },
+                          background: Container(
+                              alignment: Alignment.centerRight,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                  color: Colors.red),
+                              child: const Icon(Icons.delete)),
+                          child: Card(
+                            child: ListTile(
+                                title: Text(order.name ?? 'No name specified'),
+                                subtitle:
+                                    Text(order.room ?? 'No room specified'),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    deleteAt(index);
+                                  },
+                                )),
+                          ),
                         ),
                       );
                     },
