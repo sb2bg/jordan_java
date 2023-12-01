@@ -77,11 +77,13 @@ class _NewItemPageState extends State<NewItemPage> {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 4.0),
+          const SizedBox(height: 8.0),
           ListTile(
             leading: const Icon(Icons.coffee_maker),
             title: const Text('Sweetener'),
             trailing: ToggleButtons(
+              // make wider
+              constraints: const BoxConstraints(minWidth: 75, minHeight: 50),
               isSelected: [_sweetener, !_sweetener],
               onPressed: (index) {
                 setState(() {
