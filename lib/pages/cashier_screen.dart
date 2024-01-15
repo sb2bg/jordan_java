@@ -196,7 +196,7 @@ class _CashierScreenState extends State<CashierScreen> {
                   SharedPreferences.getInstance().then((prefs) {
                     prefs.setString('default_screen', '/cashier');
                     context.showSnackBar(
-                        message: 'Default screen set to cashier');
+                        message: 'Default screen set to cashier mode');
                     Navigator.pop(context);
                   });
                 },
