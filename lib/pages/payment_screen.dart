@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:jhs_pop/util/checkout_order.dart';
+import 'package:jhs_pop/util/constants.dart';
+import 'package:jhs_pop/util/order_aggregator.dart';
 import 'package:jhs_pop/util/teacher_order.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key, required this.order});
+  PaymentScreen(
+      {super.key,
+      TeacherOrder? teacherOrder,
+      Map<CheckoutOrder, int>? checkoutOrder}) {
+    orderAggregator = OrderAggregator(
+      teacherOrder: teacherOrder,
+      checkoutOrder: checkoutOrder,
+    );
+  }
 
-  final TeacherOrder order;
+  late final OrderAggregator orderAggregator;
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+  bool _isComplete = false;
+
+  void completePayment() {
+    setState(() {
+      _isComplete = true;
+    });
+
+    Navigator.pop(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -24,7 +45,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       NfcManager.instance.startSession(
         onDiscovered: (NfcTag tag) async {
           tag.data.forEach((key, value) {
-            print('$key: ${value.toString()}');
+            // TODO: Handle tag data
           });
         },
       );
@@ -48,79 +69,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              widget.order.name ?? 'No name specified',
+              widget.orderAggregator.name,
               style: const TextStyle(
                 fontSize: 24.0,
               ),
             ),
             const SizedBox(height: 6.0),
             Text(
-              'Total: \$${12.34.toStringAsFixed(2)}',
+              'Total: \$${widget.orderAggregator.price.toStringAsFixed(2)}',
               style: const TextStyle(
                 fontSize: 24.0,
               ),
             ),
             const SizedBox(height: 50.0),
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(75.0),
-                child: Text(
-                  'Tap your card to pay',
-                ),
-              ),
-            ),
+            _isComplete
+                ? Container() // TODO: This should trigger into an animation of a checkmark
+                : const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(75.0),
+                      child: Text(
+                        'Tap your card to pay',
+                      ),
+                    ),
+                  ),
             const SizedBox(height: 50.0),
             TextButton(
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Order Details'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListTile(
-                            title: const Text('Name'),
-                            subtitle:
-                                Text(widget.order.name ?? 'No name specified'),
-                          ),
-                          ListTile(
-                            title: const Text('Room'),
-                            subtitle:
-                                Text(widget.order.room ?? 'No room specified'),
-                          ),
-                          ListTile(
-                            title: const Text('Additional'),
-                            subtitle: Text(widget.order.additional ??
-                                'No additional specified'),
-                          ),
-                          ListTile(
-                            title: const Text('Frequency'),
-                            subtitle: Text(widget.order.frequency ??
-                                'No frequency specified'),
-                          ),
-                          ListTile(
-                            title: const Text('Creamer'),
-                            subtitle: Text(
-                                widget.order.creamer ?? 'No creamer specified'),
-                          ),
-                          ListTile(
-                            title: const Text('Sweetener'),
-                            subtitle: Text(widget.order.sweetener ??
-                                'No sweetener specified'),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Close'),
-                        ),
-                      ],
-                    ),
-                  );
+                  showOrderDialog(widget.orderAggregator.fields,
+                      widget.orderAggregator.price);
                 },
                 child: const Text('View Order Details')),
             TextButton(
@@ -131,6 +107,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void showOrderDialog(Map<String, dynamic> fields, double price) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Order Details'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('Total'),
+              subtitle: Text('\$${price.toStringAsFixed(2)}'),
+            ),
+            ...fields.entries
+                .map(
+                  (e) => ListTile(
+                    title: Text(e.key.capitalize()),
+                    subtitle: Text(e.value.toString()),
+                  ),
+                )
+                .toList()
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
