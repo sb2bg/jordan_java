@@ -7,8 +7,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<bool> saveImage(int index, BuildContext context) async {
-  final imagePicker = ImagePicker();
-
   if (!await _checkPermission(context)) {
     if (context.mounted) {
       Navigator.of(context).pop();
@@ -39,6 +37,7 @@ Future<bool> saveImage(int index, BuildContext context) async {
     return false;
   }
 
+  final imagePicker = ImagePicker();
   final pickedImage = await imagePicker.pickImage(source: ImageSource.gallery);
 
   if (pickedImage != null) {
