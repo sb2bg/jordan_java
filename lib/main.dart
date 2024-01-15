@@ -66,8 +66,17 @@ final routes = <String, WidgetBuilder>{
   '/': (context) => const SplashScreen(),
   '/home': (context) => const HomePage(),
   '/manual': (context) => const NewItemPage(),
-  '/payment': (context) => PaymentScreen(
-      order: ModalRoute.of(context)!.settings.arguments as TeacherOrder),
+  '/payment': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments;
+
+    if (args is TeacherOrder) {
+      return PaymentScreen(teacherOrder: args);
+    } else if (args is Map<CheckoutOrder, int>) {
+      return PaymentScreen(checkoutOrder: args);
+    } else {
+      return PaymentScreen();
+    }
+  },
   '/load_order': (context) => const LoadOrderPage(),
   '/cashier': (context) => const CashierScreen(),
   '/edit_options': (context) => EditOptionsPage(
