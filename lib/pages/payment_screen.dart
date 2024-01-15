@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jhs_pop/util/order.dart';
+import 'package:jhs_pop/util/teacher_order.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
 class PaymentScreen extends StatefulWidget {
