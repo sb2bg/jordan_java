@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jhs_pop/main.dart';
 import 'package:jhs_pop/util/checkout_order.dart';
+import 'package:jhs_pop/util/constants.dart';
 import 'package:jhs_pop/util/img_manager.dart';
 
 class EditOptionsPage extends StatefulWidget {
@@ -39,6 +40,11 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
         itemCount: widget.buttons.length,
         itemBuilder: (context, index) {
           return ListTile(
+            leading: Image.asset(
+              widget.buttons[index].image,
+              height: 40,
+              width: 40,
+            ),
             title: Text(widget.buttons[index].name),
             subtitle:
                 Text('\$${widget.buttons[index].price.toStringAsFixed(2)}'),
@@ -59,12 +65,11 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
       context: context,
       builder: (context) {
         String newName = widget.buttons[index].name;
-        double newPrice = widget.buttons[index].price;
+        double? newPrice = widget.buttons[index].price;
+        bool uploadImage = false;
 
         return StatefulBuilder(
           builder: (context, setState) {
-            bool uploadImage = false;
-
             return AlertDialog(
               title: const Text('Edit Option'),
               content: IntrinsicWidth(
@@ -83,7 +88,7 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                       decoration: const InputDecoration(hintText: 'Price'),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        newPrice = double.tryParse(value) ?? 0.0;
+                        newPrice = double.tryParse(value);
                       },
                     ),
                     const SizedBox(height: 8),
@@ -93,6 +98,8 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                           child: ElevatedButton(
                               onPressed: () {
                                 saveImage(index, context).then((value) {
+                                  if (!value) return;
+
                                   setState(() {
                                     uploadImage = true;
                                   });
@@ -100,11 +107,15 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                               },
                               child: const Text('Upload Image')),
                         ),
-                        IconButton(
-                            onPressed: null,
-                            icon: uploadImage
-                                ? const Icon(Icons.check)
-                                : const Icon(Icons.close)),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            uploadImage
+                                ? Icons.check_circle
+                                : Icons.check_circle_outline,
+                            color: uploadImage ? Colors.green : Colors.grey,
+                          ),
+                        )
                       ],
                     ),
                   ],
@@ -120,7 +131,20 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                 ElevatedButton(
                   child: const Text('Save'),
                   onPressed: () {
-                    db.update(
+                    if (newName.isEmpty) {
+                      context.showErrorSnackBar(
+                          message: 'Name cannot be empty');
+                      return;
+                    }
+
+                    if (newPrice == null) {
+                      context.showErrorSnackBar(
+                          message: 'Please enter a valid price');
+                      return;
+                    }
+
+                    db
+                        .update(
                       'checkouts',
                       {
                         'name': newName,
@@ -128,12 +152,14 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                       },
                       where: 'id = ?',
                       whereArgs: [widget.buttons[index].id],
-                    );
-
-                    setState(() {
-                      widget.buttons[index].name = newName;
-                      widget.buttons[index].price = newPrice;
+                    )
+                        .then((value) {
+                      setState(() {
+                        widget.buttons[index].name = newName;
+                        widget.buttons[index].price = newPrice!;
+                      });
                     });
+
                     Navigator.of(context).pop();
                   },
                 ),
