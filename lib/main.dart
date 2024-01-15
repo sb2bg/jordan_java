@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:jhs_pop/pages/cashier_screen.dart';
+import 'package:jhs_pop/pages/edit_options_page.dart';
 import 'package:jhs_pop/pages/home_page.dart';
 import 'package:jhs_pop/pages/load_order_page.dart';
 import 'package:jhs_pop/pages/manual_entry.dart';
 import 'package:jhs_pop/pages/payment_screen.dart';
-import 'package:jhs_pop/util/order.dart';
+import 'package:jhs_pop/pages/splash.dart';
+import 'package:jhs_pop/util/checkout_order.dart';
+import 'package:jhs_pop/util/teacher_order.dart';
 import 'package:sqflite/sqflite.dart';
 
 late final Database db;
@@ -17,7 +21,30 @@ void main() {
   openDatabase('jhs_pop.db').then((database) {
     db = database;
 
-    // setup table
+    // setup tables
+
+    db.execute('''
+        CREATE TABLE IF NOT EXISTS checkouts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          image TEXT,
+          price REAL
+        )
+      ''').then((_) {
+      db.query('checkouts').then((rows) {
+        if (rows.isEmpty) {
+          db.transaction((txn) async {
+            for (var i = 0; i < 9; i++) {
+              await txn.insert('checkouts', {
+                'name': 'Item ${i + 1}',
+                'image': 'assets/images/solid_blue.jpeg',
+                'price': (i + 1) * 1.5,
+              });
+            }
+          });
+        }
+      });
+    });
 
     db.execute('''
         CREATE TABLE IF NOT EXISTS orders (
@@ -36,11 +63,16 @@ void main() {
 }
 
 final routes = <String, WidgetBuilder>{
-  '/': (context) => const HomePage(),
+  '/': (context) => const SplashScreen(),
+  '/home': (context) => const HomePage(),
   '/manual': (context) => const NewItemPage(),
   '/payment': (context) => PaymentScreen(
       order: ModalRoute.of(context)!.settings.arguments as TeacherOrder),
   '/load_order': (context) => const LoadOrderPage(),
+  '/cashier': (context) => const CashierScreen(),
+  '/edit_options': (context) => EditOptionsPage(
+      buttons:
+          ModalRoute.of(context)!.settings.arguments as List<CheckoutOrder>),
 };
 
 class MyApp extends StatelessWidget {
