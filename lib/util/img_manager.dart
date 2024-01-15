@@ -27,6 +27,7 @@ Future<bool> saveImage(int index, BuildContext context) async {
                   TextButton(
                     onPressed: () {
                       openAppSettings();
+                      Navigator.of(context).pop();
                     },
                     child: const Text('Open Settings'),
                   ),
@@ -77,25 +78,6 @@ Future<String> _getImagePath(int index) async {
 
 Future<bool> _checkPermission(BuildContext context) async {
   final status = await Permission.mediaLibrary.request();
-
-  if (status.isDenied) {
-    showDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Permission Denied'),
-        content: const Text(
-            'Please allow access to storage in order to save images.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              openAppSettings();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-  }
 
   return status.isGranted;
 }
