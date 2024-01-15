@@ -1,4 +1,4 @@
-![iOS Icon](https://github.com/sb2bg/jhs_pop/blob/main/ios/Runner/Assets.xcassets/AppIcon.appiconset/1024.png?raw=true)
+![iOS Icon](https://github.com/sb2bg/jhs_pop/blob/main/ios/Runner/Assets.xcassets/AppIcon.appiconset/180.png?raw=true)
 
 # Jordan High School Special Ed Point of Payment and Coffee Delivery System
 
