@@ -3,7 +3,7 @@ import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:jhs_pop/util/constants.dart';
-import 'package:jhs_pop/util/order.dart';
+import 'package:jhs_pop/util/teacher_order.dart';
 
 class LoadOrderPage extends StatefulWidget {
   const LoadOrderPage({super.key});
@@ -146,6 +146,10 @@ class _LoadOrderPageState extends State<LoadOrderPage> {
     for (final row in sheet.rows.skip(1)) {
       final orderMap = fields.asMap().map((index, field) {
         final value = row[indexes[index]];
+
+        if (value?.value is double) {
+          return MapEntry(field, (value?.value as double).toInt().toString());
+        }
 
         return MapEntry(field, value?.value.toString());
       });
