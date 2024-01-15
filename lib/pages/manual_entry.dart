@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jhs_pop/util/constants.dart';
-import 'package:jhs_pop/util/order.dart';
+import 'package:jhs_pop/util/teacher_order.dart';
 
 class NewItemPage extends StatefulWidget {
   const NewItemPage({super.key});
@@ -64,7 +64,6 @@ class _NewItemPageState extends State<NewItemPage> {
               hintText: 'Frequency',
               icon: Icon(Icons.calendar_today),
             ),
-            value: null,
             onChanged: (value) {
               setState(() {
                 _frequencyController.text = value!;
@@ -79,11 +78,17 @@ class _NewItemPageState extends State<NewItemPage> {
           ),
           const SizedBox(height: 8.0),
           ListTile(
-            leading: const Icon(Icons.coffee_maker),
-            title: const Text('Sweetener'),
+            leading: Transform.translate(
+              offset: const Offset(-15, 0),
+              child: const Icon(Icons.coffee),
+            ),
+            title: Transform.translate(
+              offset: const Offset(-15, 0),
+              child: const Text('Sweetener'),
+            ),
+            minLeadingWidth: 0,
             trailing: ToggleButtons(
-              // make wider
-              constraints: const BoxConstraints(minWidth: 75, minHeight: 50),
+              constraints: const BoxConstraints(minWidth: 75, minHeight: 40),
               isSelected: [_sweetener, !_sweetener],
               onPressed: (index) {
                 setState(() {
