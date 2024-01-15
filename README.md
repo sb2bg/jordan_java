@@ -1,3 +1,5 @@
+![iOS Icon](https://github.com/sb2bg/jhs_pop/blob/main/ios/Runner/Assets.xcassets/AppIcon.appiconset/1024.png?raw=true)
+
 # Jordan High School Special Ed Point of Payment and Coffee Delivery System
 
 This project is designed for Jordan High School, specifically for the special education students. It aims to provide a practical and interactive experience by mimicking a point of payment system. Additionally, it also includes a feature for teachers to order coffee deliveries.
