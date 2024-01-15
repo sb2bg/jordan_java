@@ -6,10 +6,38 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-Future<void> saveImage(int index, BuildContext context) async {
+Future<bool> saveImage(int index, BuildContext context) async {
   final imagePicker = ImagePicker();
 
-  if (!await _checkPermission(context)) return;
+  if (!await _checkPermission(context)) {
+    if (context.mounted) {
+      Navigator.of(context).pop();
+
+      showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+                title: const Text('Permission Denied'),
+                content: const Text(
+                    'Please allow access to image gallery in order to save images.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      openAppSettings();
+                    },
+                    child: const Text('Open Settings'),
+                  ),
+                ],
+              ));
+    }
+
+    return false;
+  }
 
   final pickedImage = await imagePicker.pickImage(source: ImageSource.gallery);
 
@@ -29,8 +57,11 @@ Future<void> saveImage(int index, BuildContext context) async {
       final imageFile = File(croppedImage.path);
       final imagePath = await _getImagePath(index);
       await imageFile.copy(imagePath);
+      return true;
     }
   }
+
+  return false;
 }
 
 Future<File> getImage(int index) async {
