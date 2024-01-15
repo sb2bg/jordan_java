@@ -52,10 +52,11 @@ class _ListTileItemState extends State<ListTileCounter> {
               margin: const EdgeInsets.symmetric(horizontal: 3),
               padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3), color: Colors.white),
+                  borderRadius: BorderRadius.circular(3),
+                  color: Colors.grey[800]),
               child: Text(
                 _itemCount.toString(),
-                style: const TextStyle(color: Colors.black, fontSize: 16),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
             InkWell(
