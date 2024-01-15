@@ -151,9 +151,31 @@ class _CashierScreenState extends State<CashierScreen> {
                   itemBuilder: (context, index) {
                     final order = _orders.keys.elementAt(index);
 
-                    return ListTileCounter(
-                      price: order.price,
-                      title: order.name,
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ListTileCounter(
+                            price: order.price,
+                            title: order.name,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              context.showConfirmationDialog(
+                                title: 'Remove Item',
+                                message:
+                                    'Are you sure you want to remove this item?',
+                                confirmText: 'Remove',
+                                onConfirm: () {
+                                  _orders.remove(order);
+                                },
+                              );
+                            });
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),
