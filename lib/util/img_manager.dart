@@ -55,7 +55,7 @@ Future<bool> saveImage(int index, BuildContext context) async {
 
     if (croppedImage != null) {
       final imageFile = File(croppedImage.path);
-      final imagePath = await _getImagePath(index);
+      final imagePath = await getImagePath(index);
       await imageFile.copy(imagePath);
       return true;
     }
@@ -65,11 +65,11 @@ Future<bool> saveImage(int index, BuildContext context) async {
 }
 
 Future<File> getImage(int index) async {
-  final imagePath = await _getImagePath(index);
+  final imagePath = await getImagePath(index);
   return File(imagePath);
 }
 
-Future<String> _getImagePath(int index) async {
+Future<String> getImagePath(int index) async {
   final directory = await getApplicationDocumentsDirectory();
   final imagesDirectory = Directory('${directory.path}/images');
   await imagesDirectory.create(recursive: true);
@@ -77,7 +77,7 @@ Future<String> _getImagePath(int index) async {
 }
 
 Future<bool> _checkPermission(BuildContext context) async {
-  final status = await Permission.mediaLibrary.request();
+  final status = await Permission.photos.request();
 
-  return status.isGranted;
+  return status.isGranted || status.isLimited;
 }
