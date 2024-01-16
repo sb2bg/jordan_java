@@ -127,6 +127,7 @@ class _CashierScreenState extends State<CashierScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
