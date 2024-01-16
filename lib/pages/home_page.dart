@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
                   ListTile(
                     title: const Text('Cashier Screen'),
                     onTap: () {
-                      Navigator.pushNamed(context, '/cashier');
+                      Navigator.pushReplacementNamed(context, '/cashier');
                     },
                   ),
                   ListTile(
