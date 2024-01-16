@@ -22,22 +22,23 @@ void main() {
     db = database;
 
     // setup tables
+    initDatabase() async {
+      //////// DEBUG ONLY /////////
+      // db.execute('''
+      //   drop table if exists checkouts;
+      // ''');
+      ////////////////////////////
 
-    //////// DEBUG ONLY /////////
-    db.execute('''
-      drop table if exists checkouts;
-    ''');
-    ////////////////////////////
-
-    db.execute('''
+      await db.execute('''
         CREATE TABLE IF NOT EXISTS checkouts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT,
           image TEXT,
           price REAL
         )
-      ''').then((_) {
-      db.query('checkouts').then((rows) {
+      ''');
+
+      await db.query('checkouts').then((rows) {
         if (rows.isEmpty) {
           db.transaction((txn) async {
             for (var i = 0; i < 9; i++) {
@@ -50,9 +51,8 @@ void main() {
           });
         }
       });
-    });
 
-    db.execute('''
+      await db.execute('''
         CREATE TABLE IF NOT EXISTS orders (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT,
@@ -63,8 +63,9 @@ void main() {
           sweetener TEXT
         )
       ''');
+    }
 
-    dbReady.complete();
+    initDatabase().then((_) => dbReady.complete());
   });
 }
 
