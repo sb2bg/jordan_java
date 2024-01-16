@@ -39,10 +39,12 @@ class OrderAggregator {
         'sweetener': teacherOrder!.sweetener,
       };
     } else if (checkoutOrder != null) {
-      return checkoutOrder!.keys
-          .map((e) => MapEntry(e.name, checkoutOrder![e]))
-          .fold<Map<String, dynamic>>({}, (previousValue, element) {
-        previousValue[element.key] = element.value;
+      return checkoutOrder!.keys.fold<Map<String, dynamic>>({},
+          (previousValue, element) {
+        final quantity = checkoutOrder![element]!;
+        previousValue[
+                '${element.name} ($quantity) - \$${(element.price * quantity).toStringAsFixed(2)}'] =
+            '\$${element.price.toStringAsFixed(2)} x $quantity';
         return previousValue;
       });
     } else {
