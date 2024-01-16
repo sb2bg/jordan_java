@@ -23,6 +23,12 @@ void main() {
 
     // setup tables
 
+    //////// DEBUG ONLY /////////
+    db.execute('''
+      drop table if exists checkouts;
+    ''');
+    ////////////////////////////
+
     db.execute('''
         CREATE TABLE IF NOT EXISTS checkouts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
