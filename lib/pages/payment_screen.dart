@@ -123,14 +123,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
               title: const Text('Total'),
               subtitle: Text('\$${price.toStringAsFixed(2)}'),
             ),
-            ...fields.entries
-                .map(
-                  (e) => ListTile(
-                    title: Text(e.key.capitalize()),
-                    subtitle: Text(e.value.toString()),
-                  ),
-                )
-                .toList()
+            ...fields.entries.map(
+              (e) => ListTile(
+                title: Text(e.key.capitalize()),
+                subtitle: Text(e.value.toString()),
+              ),
+            )
           ],
         ),
         actions: [
