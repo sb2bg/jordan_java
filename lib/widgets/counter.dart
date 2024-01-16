@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:jhs_pop/util/checkout_order.dart';
 
 class ListTileCounter extends StatefulWidget {
-  final String title;
-  final double price;
+  final CheckoutOrder order;
+  final Map<CheckoutOrder, int> count;
 
-  const ListTileCounter({Key? key, required this.title, required this.price})
-      : super(key: key);
+  const ListTileCounter({super.key, required this.order, required this.count});
 
   @override
   State<ListTileCounter> createState() => _ListTileItemState();
 }
 
 class _ListTileItemState extends State<ListTileCounter> {
-  int _itemCount = 1;
-
   updateCount(int count) {
     if (count < 1) return;
     if (count > 25) return;
 
     setState(() {
-      _itemCount = count;
+      widget.count
+          .update(widget.order, (value) => count, ifAbsent: () => count);
     });
   }
 
@@ -27,9 +26,9 @@ class _ListTileItemState extends State<ListTileCounter> {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Text(
-        '\$${(widget.price * _itemCount).toStringAsFixed(2)}',
+        '\$${(widget.order.price * widget.count[widget.order]!).toStringAsFixed(2)}',
       ),
-      title: Text(widget.title),
+      title: Text(widget.order.name),
       trailing: Container(
         height: 40,
         width: 80,
@@ -41,7 +40,7 @@ class _ListTileItemState extends State<ListTileCounter> {
           children: [
             InkWell(
                 onTap: () {
-                  updateCount(_itemCount - 1);
+                  updateCount(widget.count[widget.order]! - 1);
                 },
                 child: const Icon(
                   Icons.remove,
@@ -55,13 +54,13 @@ class _ListTileItemState extends State<ListTileCounter> {
                   borderRadius: BorderRadius.circular(3),
                   color: Colors.grey[800]),
               child: Text(
-                _itemCount.toString(),
+                widget.count[widget.order]!.toString(),
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
             InkWell(
                 onTap: () {
-                  updateCount(_itemCount + 1);
+                  updateCount(widget.count[widget.order]! + 1);
                 },
                 child: const Icon(
                   Icons.add,

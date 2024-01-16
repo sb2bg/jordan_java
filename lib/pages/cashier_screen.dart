@@ -52,8 +52,7 @@ class _CashierScreenState extends State<CashierScreen> {
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        _orders.update(button, (value) => value + 1,
-                            ifAbsent: () => 1);
+                        _orders.putIfAbsent(button, () => 1);
                       });
                     },
                     child: Container(
@@ -137,8 +136,8 @@ class _CashierScreenState extends State<CashierScreen> {
                       children: [
                         Expanded(
                           child: ListTileCounter(
-                            price: order.price,
-                            title: order.name,
+                            order: order,
+                            count: _orders,
                           ),
                         ),
                         IconButton(
