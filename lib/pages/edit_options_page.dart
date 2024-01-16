@@ -64,12 +64,30 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
     showDialog(
       context: context,
       builder: (context) {
+        String originalName = widget.buttons[index].name;
         String newName = widget.buttons[index].name;
+        double originalPrice = widget.buttons[index].price;
         double? newPrice = widget.buttons[index].price;
         bool uploadImage = false;
+        bool showSave = false;
+        bool saving = false;
 
         return StatefulBuilder(
           builder: (context, setState) {
+            void calculateShowSave() {
+              if (newName != originalName ||
+                  newPrice != originalPrice ||
+                  uploadImage) {
+                setState(() {
+                  showSave = true;
+                });
+              } else {
+                setState(() {
+                  showSave = false;
+                });
+              }
+            }
+
             return AlertDialog(
               title: const Text('Edit Option'),
               content: IntrinsicWidth(
@@ -80,7 +98,13 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                     TextField(
                       decoration: const InputDecoration(hintText: 'Name'),
                       onChanged: (value) {
-                        newName = value;
+                        if (value.isEmpty) {
+                          newName = originalName;
+                        } else {
+                          newName = value;
+                        }
+
+                        calculateShowSave();
                       },
                     ),
                     const SizedBox(height: 8),
@@ -89,6 +113,7 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
                         newPrice = double.tryParse(value);
+                        calculateShowSave();
                       },
                     ),
                     const SizedBox(height: 8),
@@ -103,6 +128,8 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                                   setState(() {
                                     uploadImage = true;
                                   });
+
+                                  calculateShowSave();
                                 });
                               },
                               child: const Text('Upload Image')),
@@ -128,41 +155,60 @@ class _EditOptionsPageState extends State<EditOptionsPage> {
                     Navigator.of(context).pop();
                   },
                 ),
-                ElevatedButton(
-                  child: const Text('Save'),
-                  onPressed: () {
-                    if (newName.isEmpty) {
-                      context.showErrorSnackBar(
-                          message: 'Name cannot be empty');
-                      return;
-                    }
+                saving
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: showSave
+                            ? () {
+                                if (newName.isEmpty) {
+                                  context.showErrorSnackBar(
+                                      message: 'Name cannot be empty');
+                                  return;
+                                }
 
-                    if (newPrice == null) {
-                      context.showErrorSnackBar(
-                          message: 'Please enter a valid price');
-                      return;
-                    }
+                                if (newPrice == null) {
+                                  context.showErrorSnackBar(
+                                      message: 'Please enter a valid price');
+                                  return;
+                                }
 
-                    db
-                        .update(
-                      'checkouts',
-                      {
-                        'name': newName,
-                        'price': newPrice,
-                      },
-                      where: 'id = ?',
-                      whereArgs: [widget.buttons[index].id],
-                    )
-                        .then((value) {
-                      setState(() {
-                        widget.buttons[index].name = newName;
-                        widget.buttons[index].price = newPrice!;
-                      });
-                    });
+                                setState(() {
+                                  saving = true;
+                                });
 
-                    Navigator.of(context).pop();
-                  },
-                ),
+                                final updates = <String, dynamic>{
+                                  'name': newName,
+                                  'price': newPrice,
+                                };
+
+                                void updateDatabase() {
+                                  db.update(
+                                    'checkouts',
+                                    updates,
+                                    where: 'id = ?',
+                                    whereArgs: [widget.buttons[index].id],
+                                  ).then((value) {
+                                    setState(() {
+                                      widget.buttons[index].name = newName;
+                                      widget.buttons[index].price = newPrice!;
+                                    });
+                                  });
+
+                                  Navigator.of(context).pop();
+                                }
+
+                                if (uploadImage) {
+                                  getImagePath(index).then((value) {
+                                    updates['image'] = value;
+                                    updateDatabase();
+                                  });
+                                } else {
+                                  updateDatabase();
+                                }
+                              }
+                            : null,
+                        child: const Text('Save'),
+                      ),
               ],
             );
           },
