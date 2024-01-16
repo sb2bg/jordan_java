@@ -150,7 +150,9 @@ class _CashierScreenState extends State<CashierScreen> {
                                     'Are you sure you want to remove this item?',
                                 confirmText: 'Remove',
                                 onConfirm: () {
-                                  _orders.remove(order);
+                                  setState(() {
+                                    _orders.remove(order);
+                                  });
                                 },
                               );
                             });
