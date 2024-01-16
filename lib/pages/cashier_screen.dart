@@ -3,11 +3,10 @@ import 'package:jhs_pop/main.dart';
 import 'package:jhs_pop/util/checkout_order.dart';
 import 'package:jhs_pop/util/constants.dart';
 import 'package:jhs_pop/widgets/counter.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CashierScreen extends StatefulWidget {
-  const CashierScreen({Key? key}) : super(key: key);
+  const CashierScreen({super.key});
 
   @override
   State<CashierScreen> createState() => _CashierScreenState();
@@ -16,9 +15,6 @@ class CashierScreen extends StatefulWidget {
 class _CashierScreenState extends State<CashierScreen> {
   List<CheckoutOrder> _buttons = [];
   final Map<CheckoutOrder, int> _orders = {};
-  final List<Color> fonts = List.generate(9, (index) {
-    return Colors.black;
-  });
 
   @override
   void initState() {
@@ -31,29 +27,6 @@ class _CashierScreenState extends State<CashierScreen> {
         });
       });
     });
-  }
-
-  updateFont(ImageProvider image, int index) async {
-    final PaletteGenerator paletteGenerator =
-        await PaletteGenerator.fromImageProvider(image);
-
-    if (mounted) {
-      setState(() {
-        fonts[index] =
-            getTextColor(paletteGenerator.dominantColor?.color ?? Colors.black);
-      });
-    }
-  }
-
-  Color getTextColor(Color color) {
-    double luminance =
-        (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
-
-    if (luminance > 0.5) {
-      return Colors.black;
-    } else {
-      return Colors.white;
-    }
   }
 
   @override
@@ -76,8 +49,6 @@ class _CashierScreenState extends State<CashierScreen> {
                     fit: BoxFit.cover,
                   );
 
-                  updateFont(background.image, index);
-
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -90,27 +61,37 @@ class _CashierScreenState extends State<CashierScreen> {
                       decoration: BoxDecoration(
                         image: background,
                       ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              button.name,
-                              style: TextStyle(
-                                color: fonts[index],
-                                fontSize: 18,
+                      child: Stack(children: [
+                        Container(
+                            decoration: BoxDecoration(
+                                gradient: RadialGradient(radius: 1.5, colors: [
+                          Colors.black.withOpacity(0.35),
+                          Colors.transparent
+                        ]))),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                button.name,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.035,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '\$${button.price.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                color: fonts[index],
-                                fontSize: 18,
+                              Text(
+                                '\$${button.price.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.035,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ]),
                     ),
                   );
                 }),
@@ -120,7 +101,8 @@ class _CashierScreenState extends State<CashierScreen> {
                 children: [
                   TextButton.icon(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/payment');
+                        Navigator.pushNamed(context, '/payment',
+                            arguments: _orders);
                       },
                       icon: const Icon(Icons.check),
                       label: const Text('Complete Order')),
